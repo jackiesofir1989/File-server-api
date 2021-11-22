@@ -4,3 +4,4 @@ starlette~=0.17.1
 python-multipart~=0.0.5
 pydantic~=1.8.2
 fastapi_utils~=0.2.1
+aiofiles~=0.7.0
