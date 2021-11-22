@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
 from typing import List
 
 from fastapi import File, UploadFile, HTTPException, status
+from fastapi.responses import FileResponse
 from fastapi_utils.api_model import APIMessage
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
@@ -9,18 +11,10 @@ from pydantic import FilePath, DirectoryPath
 
 router = InferringRouter()
 
-"""
-path                parameters      conditions
-1. create a file    file, path      dir must exist
-2. get a file       path            file must exist
-3. update a file    file, path      file must exist
-4. delete a file    path            file must exist
-5. list a folder    path            dir must exist
-"""
-
 
 @cbv(router)
 class FileCRUD:
+    """This class based view deals with file and folder management"""
 
     @router.post("/files/{folder_path}", status_code=status.HTTP_201_CREATED)
     def create_new_file(self, folder_path: DirectoryPath, file: UploadFile = File(...)) -> APIMessage:
@@ -34,38 +28,32 @@ class FileCRUD:
             return APIMessage(detail=f"File {file.filename} created at {folder_path.name}")
 
     @router.get("/files/{file_path}")
-    def get_file(self, file_path: FilePath) -> File:
+    def get_file(self, file_path: FilePath):
         """Retrieves a file given a path"""
-        if self.check_path_exist(file_path):
-            # TODO: check for permissions
-            # TODO: get file
-            return file
+        return FileResponse(file_path, filename=file_path.name)
 
     @router.get("/folder/{folder_path}")
     def get_folder_list(self, folder_path: DirectoryPath) -> List[str]:
         """Retrieves a the content of a folder given a path"""
-        if self.check_path_exist(folder_path):
-            # TODO: folder_path.ls()
-            return list_of_names
+        return os.listdir(folder_path)
 
     @router.put("/files/{file_path}")
     def update_file(self, file_path: FilePath, file: UploadFile = File(...)) -> APIMessage:
         """Updates a existing file given a path"""
-        if self.check_path_exist(file_path):
-            # TODO: check for permissions
-            # TODO: file upload
-            return APIMessage(detail=f"File {file.filename} created at {file_path.name}")
+        try:
+            return APIMessage(detail=f"File {file.filename} created!")
+        except OSError:
+            return APIMessage(detail=f"Failed updating the file {file_path.name}")
+        except Exception as e:
+            return APIMessage(detail=f"Unexpected error {e}")
 
     @router.delete("/files/{file_path}")
     def delete_file(self, file_path: FilePath) -> APIMessage:
         """Removes a existing file given a path"""
-        if self.check_path_exist(file_path):
-            # TODO: check for permissions
-            return APIMessage(detail=f"Deleted file name {file_path.name} at {file_path}")
-
-    @staticmethod
-    def check_path_exist(file_path: FilePath) -> bool:
-        if not file_path.exists():
-            raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,
-                                detail=f"Path {file_path.name} dose not exist.")
-        return True
+        try:
+            os.remove(file_path)
+            return APIMessage(detail=f"Deleted file {file_path.name}")
+        except PermissionError:
+            return APIMessage(detail=f"File {file_path.name} is protected")
+        except Exception as e:
+            return APIMessage(detail=f"Unexpected error {e}")
