@@ -1,4 +1,6 @@
 fastapi~=0.70.0
 uvicorn~=0.15.0
-starlette~=0.16.0
-python-multipart
+starlette~=0.17.1
+python-multipart~=0.0.5
+pydantic~=1.8.2
+fastapi_utils~=0.2.1
