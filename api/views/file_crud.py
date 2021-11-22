@@ -47,9 +47,11 @@ class FileCRUD:
             file_path: FilePath = Path(self.PREFIX_FOLDER + file_path)
             return APIMessage(detail=f"File {file.filename} created!")
         except OSError:
-            raise HTTPException(detail=f"Failed updating the file {file_path.name}", status_code=status.HTTP_417_EXPECTATION_FAILED)
+            raise HTTPException(detail=f"Failed updating the file {file_path.name}",
+                                status_code=status.HTTP_417_EXPECTATION_FAILED)
         except Exception as e:
-            raise HTTPException(detail=f"Unexpected error {e}", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise HTTPException(detail=f"Unexpected error {e}",
+                                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @router.delete("/files/{file_path}")
     def delete_file(self, file_path: str) -> APIMessage:
@@ -59,6 +61,8 @@ class FileCRUD:
             os.remove(file_path)
             return APIMessage(detail=f"Deleted file {file_path.name}")
         except PermissionError:
-            raise HTTPException(detail=f"File {file_path.name} is protected", status_code=status.HTTP_403_FORBIDDEN)
+            raise HTTPException(detail=f"File {file_path.name} is protected",
+                                status_code=status.HTTP_403_FORBIDDEN)
         except Exception as e:
-            raise HTTPException(detail=f"Unexpected error {e}", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise HTTPException(detail=f"Unexpected error {e}",
+                                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
