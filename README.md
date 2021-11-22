@@ -1,2 +1,3 @@
 # File server api
-This will retrieve files from file path system based on URL input.
+This api exposes file explorer enables to add, update, get and delete files.\n
+The root folder is "file_storage".
