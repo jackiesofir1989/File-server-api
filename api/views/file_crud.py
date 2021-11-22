@@ -14,7 +14,7 @@ path                parameters      conditions
 1. create a file    file, path      dir must exist
 2. get a file       path            file must exist
 3. update a file    file, path      file must exist
-4. delete a file    file, path      file must exist
+4. delete a file    path            file must exist
 5. list a folder    path            dir must exist
 """
 
@@ -22,12 +22,14 @@ path                parameters      conditions
 @cbv(router)
 class FileCRUD:
 
-    @router.post("/files/{folder_path}")
+    @router.post("/files/{folder_path}", status_code=status.HTTP_201_CREATED)
     def create_new_file(self, folder_path: DirectoryPath, file: UploadFile = File(...)) -> APIMessage:
         """Uploads a file given a path"""
         if self.check_path_exist(folder_path):
-            if "file name not exiting":
-                raise HTTPException(status_code=404, detail=f"File {file.filename} already exist.")
+            dir_path: DirectoryPath = DirectoryPath(folder_path.name + file.filename)
+            if dir_path.exists():
+                raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,
+                                    detail=f"File {file.filename} already exist.")
             # TODO: file upload
             return APIMessage(detail=f"File {file.filename} created at {folder_path.name}")
 
@@ -61,7 +63,9 @@ class FileCRUD:
             # TODO: check for permissions
             return APIMessage(detail=f"Deleted file name {file_path.name} at {file_path}")
 
-    def check_path_exist(self, file_path: FilePath) -> bool:
+    @staticmethod
+    def check_path_exist(file_path: FilePath) -> bool:
         if not file_path.exists():
-            raise HTTPException(status_code=404, detail=f"Path {file_path.name} dose not exist.")
+            raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,
+                                detail=f"Path {file_path.name} dose not exist.")
         return True
