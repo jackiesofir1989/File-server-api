@@ -3,7 +3,11 @@ from fastapi import FastAPI
 
 from api import urls
 
-app = FastAPI(title='File Server')
+app = FastAPI(
+    title='File server',
+    description="""
+    This api exposes file explorer enables to add, update, get and delete files.\n
+    The root folder is "file_storage".""")
 
 app.include_router(urls.router)
 
