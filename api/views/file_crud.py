@@ -40,8 +40,11 @@ class FileCRUD:
         """Retrieves a file given a path - if the file is empty is dose not return a download link"""
 
         file_path = self.get_and_validate_file_path(file_path)
+
         if not file_path.exists():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"File {file_path} dose not exist.")
+        if not file_path.is_file():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Path {file_path} is not a file.")
 
         return FileResponse(file_path, filename=file_path.name)
 
@@ -53,6 +56,8 @@ class FileCRUD:
         folder_path: DirectoryPath = self.get_and_validate_file_path(folder_path)
         if not folder_path.exists():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Folder {folder_path} dose not exist.")
+        if not folder_path.is_dir():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Path {folder_path} is not a folder.")
 
         return os.listdir(folder_path)
 
@@ -64,8 +69,8 @@ class FileCRUD:
             file_path = self.get_and_validate_file_path(file_path, file_name=file.filename)
             if not file_path.exists():
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"File {file_path} dose not exist.")
-            await self.write_file(file_path, file)
 
+            await self.write_file(file_path, file)
             return APIMessage(detail=f"File {file.filename} created!")
         except OSError:
             raise HTTPException(detail=f"Failed updating the file {file_path.name}", status_code=status.HTTP_417_EXPECTATION_FAILED)
@@ -78,8 +83,8 @@ class FileCRUD:
             file_path: FilePath = self.get_and_validate_file_path(file_path)
             if not file_path.exists():
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"File {file_path} dose not exist.")
-            os.remove(file_path)
 
+            os.remove(file_path)
             return APIMessage(detail=f"Deleted file {file_path.name}")
         except PermissionError:
             raise HTTPException(detail=f"File {file_path.name} is protected", status_code=status.HTTP_403_FORBIDDEN)
